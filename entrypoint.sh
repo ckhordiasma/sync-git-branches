@@ -12,6 +12,7 @@ PUSH_ARGS=$7
 SPAWN_LOGS=$8
 DOWNSTREAM_REPO=$9
 IGNORE_FILES=${10}
+UPSTREAM_SSH_KEY=${11}
 
 if [[ -z "$UPSTREAM_REPO" ]]; then
   echo "Missing \$UPSTREAM_REPO"
@@ -57,6 +58,12 @@ git config user.name "${GITHUB_ACTOR}"
 git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
 git config --local user.password ${GITHUB_TOKEN}
 git config --global merge.ours.driver true
+
+if [[ -n "$UPSTREAM_SSH_KEY" ]]; then
+  ssh-add <(echo "$UPSTREAM_SSH_KEY")
+  # convert upstream repo to a ssh-based URI
+  echo "$UPSTREAM_REPO" | sed -E 's|https://.*github.com/(.*)/(.*).git|git@github.com:\1/\2.git|'
+fi
 
 git remote add upstream "$UPSTREAM_REPO"
 git fetch ${FETCH_ARGS} upstream
